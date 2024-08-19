@@ -10,22 +10,25 @@ function startup(): void{
     choices: ['View all employees', 'Add employee', 'Add role', 'Add department', 'Update employee role', 'View all roles', 'View all departments', 'Exit']
   })
   .then(function(answers){
-    if (answers.startup === 'View all employees'){
-        console.log('View all employees selected');
-    //   viewAllEmployees();
-    } else if (answers.startup === 'Add employee'){
+    if (answers.startup === 'Add employee'){
         console.log('Add employee selected');
-        addEmployee();
-    } else if (answers.startup === 'Add role'){
+        // addEmployee();
+    } 
+    else if (answers.startup === 'Add role'){
         console.log('Add role selected');
-        addRole();
-    } else if (answers.startup === 'Add department'){
+        // addRole();
+    } 
+    else if (answers.startup === 'Add department'){
         console.log('Add department selected');
-        addDepartment();
+        // addDepartment();
     }
     else if (answers.startup === 'Update employee role'){
         console.log('Update employee role selected');
     //   updateEmployeeRole();
+    } 
+    else if (answers.startup === 'View all employees'){
+        console.log('View all employees selected');
+    //   viewAllEmployees();
     }
     else if (answers.startup === 'View all roles'){
         console.log('View all roles selected');
@@ -57,9 +60,13 @@ function addEmployee(): void{
         .then((answers) => {
             console.log(`Employee added: ${answers.firstName} ${answers.lastName}`);
             pool.query('INSERT INTO employee (first_name, last_name) VALUES ($1, $2)', [answers.firstName, answers.lastName], (err, res) => {
-                if (err) throw err;
+                if (err) {
+                    console.log(err);
+                } 
+                else {
                 console.log('Employee added');
                 startup();
+                }
             })
         })
 }
@@ -74,9 +81,12 @@ function addRole(): void{
         .then((answers) => {
             console.log(`Role added: ${answers.newRole}`);
             pool.query('INSERT INTO role (title) VALUES ($1)', [answers.newRole], (err, res) => {
-                if (err) throw err;
+                if (err) {
+                    console.log(err);
+                } else {
                 console.log('Role added');
                 startup();
+                }
             })
         })
 }
@@ -96,4 +106,28 @@ function addDepartment(): void{
         })
     })
 }
+
+function updateEmployee(): void {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'employeeId',
+            message: 'What is the employee\'s ID?'
+        },
+        {
+            type: 'input',
+            name: 'newRoleId',
+            message: 'What is the new role ID?'
+        }
+    ])
+    .then((answers) => {
+        console.log(`Employee updated: ${answers.employeeId} ${answers.newRoleId}`);
+        pool.query('UPDATE employee SET role_id = $1 WHERE id = $2', [answers.newRoleId, answers.employeeId], (err, res) => {
+            if (err) throw err;
+            console.log('Employee updated');
+            startup();
+        })
+    })
+}
+
 
