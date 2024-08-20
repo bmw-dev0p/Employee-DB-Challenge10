@@ -1,5 +1,5 @@
-// import dotenv from 'dotenv';
-// dotenv.config();
+import dotenv from 'dotenv';
+dotenv.config();
 
 // Import and require Pool (node-postgres)
 // We'll be creating a Connection Pool. Read up on the benefits here: https://node-postgres.com/features/pooling
@@ -23,5 +23,7 @@ const connectToDb = async () => {
     process.exit(1);
   }
 };
+
+// connectToDb(); ?
 
 export { pool, connectToDb };
