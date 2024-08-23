@@ -14,12 +14,12 @@
   <br/>The following steps will allow you to run the code locally:
   <br/>Step 1: Navigate to : https://github.com/bmw-dev0p/Employee-DB-Challenge10
   <br/>Step 2: Clone the repo to download it onto your local computer
-  <br/>Step 3: Open download in the IDE of your choosing, navigate to the "src" folder structure, right click "index.ts", run in integrated terminal
+  <br/>Step 3: Open download in the IDE of your choosing, navigate to the "src" folder structure, right click "src" folder, run in integrated terminal
   <br/>Step 4: Run the command ```npm install``` to install the dependent packages
-  <br/>Step 5: After package installation, run the command ```node index.js```
+  <br/>Step 5: After package installation, run the command ```npm run start```
   <br/>Step 6: Follow the console prompts to interact with the database 
   ## Usage:
-  Starting up program and Vehicle selection
+  Starting up program 
   <br/>![startup](?raw=true)
   <br/>Detailed vehicle creation
   <br/>![startup](?raw=true)

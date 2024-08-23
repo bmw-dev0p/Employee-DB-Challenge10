@@ -1,12 +1,13 @@
 import inquirer from "inquirer";
 import { QueryResult } from 'pg';
 import { pool, connectToDb } from './connection.js';
-import ctable from 'console.table';
+// import cTable from 'console.table';
 
+await connectToDb();
 
+art();
 
 function startup(): void{
-    art();
     
   inquirer.prompt({
     type: 'list',
@@ -17,35 +18,35 @@ function startup(): void{
   .then(function(answers){
     if (answers.startup === 'Add employee'){
         console.log('Add employee selected');
-        // addEmployee();
+        addEmployee();
     } 
     else if (answers.startup === 'Add role'){
         console.log('Add role selected');
-        // addRole();
+        addRole();
     } 
     else if (answers.startup === 'Add department'){
         console.log('Add department selected');
-        // addDepartment();
+        addDepartment();
     }
     else if (answers.startup === 'Update employee role'){
         console.log('Update employee role selected');
-    //   updateEmployeeRole();
+        updateEmployee();
     } 
     else if (answers.startup === 'View all employees'){
         console.log('View all employees selected');
-    //   viewAllEmployees();
+        viewEmployees();
     }
     else if (answers.startup === 'View all roles'){
         console.log('View all roles selected');
-    //   viewAllRoles();
+        viewRoles();
     }
     else if (answers.startup === 'View all departments'){
         console.log('View all departments selected');
-    //   viewAllDepartments();
+        viewDepartments();
     }
     else if (answers.startup === 'Exit'){
         console.log('Exit selected');
-    //   exit();
+        exit();
     }
   })
 };
@@ -78,15 +79,16 @@ function addEmployee(): void{
         .then((answers) => {
             console.log(`addEmployee selected`);
             // select statement to get employee
-            const sql = 'INSERT INTO employee (first_name, last_name, manager_id) VALUES ($1, $2, $3)';
-            const params = [answers.firstName, answers.lastName, answers.manager];
+            const sql = 'INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4) RETURNING *';
+            const params = [answers.firstName, answers.lastName, answers.role_id, answers.manager];
             //result??
             pool.query(sql, params, (err: Error, result: QueryResult) => {
                 if (err) {
                     console.log(err);
+                    return;
                 } 
                 else if (result) {
-                console.table(result.rows); //=?
+                console.log(result.rows); //=?
                 console.log(`${answers.firstName} ${answers.lastName} added`);
                 startup();
                 }
@@ -109,16 +111,39 @@ function addRole(): void{
             pool.query(sql, params, (err: Error, result: QueryResult) => {
                 if (err) {
                     console.log(err);
+                    return;
                 } else {
                 console.log(`${answers.newRole}added`);
-                console.table(result.rows);
+                console.log(result.rows);
                 startup();
                 }
             })
         })
 }
 
-function addDepartment(): void{
+async function addDepartment(): Promise<void>{
+    //fetch and display current departments before adding
+    const fetchDepartments = await pool.query('SELECT * FROM departments');
+    console.log(fetchDepartments.rows);
+    //change to array of objects
+    // key value pairs of name and value
+    // map > new key value pairs 
+
+    // pool.query(fetchDepartments, '',(err: Error, result: QueryResult) => {
+    //     if (err) {
+    //         console.log(err);
+    //         return;
+    //     } else {
+    //     const departments = result.rows;
+    //     const departmentNames = departments.map((department: { name: string; }) => department.name);
+    //     console.log('Here is a list of current departments for reference:');
+    //     console.log(departmentNames);
+    //     }
+    // })
+
+    
+    
+
     inquirer.prompt({
         type: 'input',
         name: 'newDepartment',
@@ -126,15 +151,16 @@ function addDepartment(): void{
     })
     .then((answers) => {
         console.log(`addDepartment selected`);
-        const sql = 'INSERT INTO department (name) VALUES ($1)';
+        const sql = 'INSERT INTO department (name) VALUES ($1) RETURNING *';
         const params = [answers.newDepartment];
 
         pool.query(sql, params, (err: Error, result: QueryResult) => {
             if (err){
                 console.log(err);
+                return;
             } else {
             console.log(`${answers.newDepartment} added`);
-            console.table(result.rows);
+            console.log(result.rows);
             startup();
             }
         })
@@ -163,9 +189,10 @@ function updateEmployee(): void {
         pool.query(sql, params, (err: Error, result: QueryResult) => {
             if (err) {
                 console.log(err);
+                return;
             } else {
             console.log(`${answers.employeeId} updated`);
-            console.table(result.rows);
+            console.log(result.rows);
             startup();
             }
         })
@@ -173,14 +200,16 @@ function updateEmployee(): void {
 }
 
 function viewEmployees(): void {
+
     console.log('viewEmployees selected');
-    const sql = 'SELECT * FROM employee';
+    const sql = 'SELECT * FROM employees';
     
-    pool.query(sql, (err, res) => {
+    pool.query(sql, (err: Error, result: QueryResult) => {
         if (err) {
             console.log(err);
+            return;
         } else {
-        console.table(res.rows);
+        console.log(result.rows);
         startup();
         }
     })
@@ -188,27 +217,36 @@ function viewEmployees(): void {
 
 function viewRoles(): void {
     console.log('viewRoles selected');
-    const sql = 'SELECT * FROM role';
+    const sql = 'SELECT * FROM roles';
 
     pool.query(sql, (err: Error, result: QueryResult) => {
         if (err) {
             console.log(err);
+            return;
         } else {
-        console.table(result.rows);
+        console.log(result.rows);
         startup();
         }
     })
 }
 
+//main function to console.log departments
+//refactored to return an array of departments for use in other functions
 function viewDepartments(): void {
     console.log('viewDepartments selected');
-    const sql = 'SELECT * FROM department';
+    const sql = 'SELECT * FROM departments';
     pool.query(sql, (err: Error, result: QueryResult) => {
         if (err) {
             console.log(err);
+            // return [''];
         } else {
-        console.table(result.rows);
-        startup();
+            console.log(result.rows);
+            // const departments = result.rows;
+            // const departmentNames = departments.map((department: { name: string; }) => department.name);
+            // console.log(`viewAllDepartment names: $departmentNames`);
+            startup();
+            // return departmentNames;
+            
         }
     })
 }
@@ -219,28 +257,29 @@ function exit(): void {
 }
 
 function art(): void {
-    console.log('      ___           ___           ___           ___       ___           ___           ___           ___              ');
-    console.log('     /\  \         /\__\         /\  \         /\__\     /\  \         |\__\         /\  \         /\  \             ');
-    console.log('    /::\  \       /::|  |       /::\  \       /:/  /    /::\  \        |:|  |       /::\  \       /::\  \            ');
-    console.log('   /:/\:\  \     /:|:|  |      /:/\:\  \     /:/  /    /:/\:\  \       |:|  |      /:/\:\  \     /:/\:\  \           ');
-    console.log('  /::\~\:\  \   /:/|:|__|__   /::\~\:\  \   /:/  /    /:/  \:\  \      |:|__|__   /::\~\:\  \   /::\~\:\  \          ');
-    console.log(' /:/\:\ \:\__\ /:/ |::::\__\ /:/\:\ \:\__\ /:/__/    /:/__/ \:\__\     /::::\__\ /:/\:\ \:\__\ /:/\:\ \:\__\         ');
-    console.log(' \:\~\:\ \/__/ \/__/~~/:/  / \/__\:\/:/  / \:\  \    \:\  \ /:/  /    /:/~~/~    \:\~\:\ \/__/ \:\~\:\ \/__/        ');
-    console.log('  \:\ \:\__\         /:/  /       \::/  /   \:\  \    \:\  /:/  /    /:/  /       \:\ \:\__\    \:\ \:\__\           ');
-    console.log('   \:\ \/__/        /:/  /         \/__/     \:\  \    \:\/:/  /     \/__/         \:\ \/__/     \:\ \/__/           ');
-    console.log('    \:\__\         /:/  /                     \:\__\    \::/  /                     \:\__\        \:\__\             ');
-    console.log('     \/__/         \/__/                       \/__/     \/__/                       \/__/         \/__/             ');
-    console.log('     ___           ___           ___           ___           ___           ___           ___                        ');
-    console.log('    /\__\         /\  \         /\__\         /\  \         /\  \         /\  \         /\  \                       ');
-    console.log('   /::|  |       /::\  \       /::|  |       /::\  \       /::\  \       /::\  \       /::\  \                      ');
-    console.log('  /:|:|  |      /:/\:\  \     /:|:|  |      /:/\:\  \     /:/\:\  \     /:/\:\  \     /:/\:\  \                     ');
-    console.log(' /:/|:|__|__   /::\~\:\  \   /:/|:|  |__   /::\~\:\  \   /:/  \:\  \   /::\~\:\  \   /::\~\:\  \                    ');
-    console.log('/:/ |::::\__\ /:/\:\ \:\__\ /:/ |:| /\__\ /:/\:\ \:\__\ /:/__/_\:\__\ /:/\:\ \:\__\ /:/\:\ \:\__\                   ');
-    console.log('\/__/~~/:/  / \/__\:\/:/  / \/__|:|/:/  / \/__\:\/:/  / \:\  /\ \/__/ \:\~\:\ \/__/ \/_|::\/:/  /                   ');
-    console.log('      /:/  /       \::/  /      |:/:/  /       \::/  /   \:\ \:\__\    \:\ \:\__\      |:|::/  /                    ');
-    console.log('     /:/  /        /:/  /       |::/  /        /:/  /     \:\/:/  /     \:\ \/__/      |:|\/__/                     ');
-    console.log('    /:/  /        /:/  /        /:/  /        /:/  /       \::/  /       \:\__\        |:|  |                       ');
-    console.log('    \/__/         \/__/         \/__/         \/__/         \/__/         \/__/         \|__|                       ');
+    //needed to use double backslashes "\\" for every single "\" to escape the original functionality
+    console.log(' ________  __       __  _______   __        ______  __      __  ________  ________       ');
+    console.log('|        \\|  \\     /  \\|       \\ |  \\      /      \\|  \\    /  \\|        \\|        \\      ');
+    console.log('| $$$$$$$$| $$\\   /  $$| $$$$$$$\\| $$     |  $$$$$$\\\\$$\\  /  $$| $$$$$$$$| $$$$$$$$      ');
+    console.log('| $$__    | $$$\\ /  $$$| $$__/ $$| $$     | $$  | $$ \\$$\\/  $$ | $$__    | $$__          ');
+    console.log('| $$  \\   | $$$$\\  $$$$| $$    $$| $$     | $$  | $$  \\$$  $$  | $$  \\   | $$  \\         ');
+    console.log('| $$$$$   | $$\\$$ $$ $$| $$$$$$$ | $$     | $$  | $$   \\$$$$   | $$$$$   | $$$$$         ');
+    console.log('| $$_____ | $$ \\$$$| $$| $$      | $$_____| $$__/ $$   | $$    | $$_____ | $$_____       ');
+    console.log('| $$     \\| $$  \\$ | $$| $$      | $$     \\\\$$    $$   | $$    | $$     \\| $$     \\      ');
+    console.log(' \\$$$$$$$$ \\$$      \\$$ \\$$       \\$$$$$$$$ \\$$$$$$     \\$$     \\$$$$$$$$ \\$$$$$$$$      ');
+    console.log('\n');
+    console.log(' __       __   ______   __    __   ______    ______   ________  _______                  ');
+    console.log('|  \\     /  \\ /      \\ |  \\  |  \\ /      \\  /      \\ |        \\|       \\                 ');
+    console.log('| $$\\   /  $$|  $$$$$$\\| $$\\ | $$|  $$$$$$\\|  $$$$$$\\| $$$$$$$$| $$$$$$$\\                ');
+    console.log('| $$$\\ /  $$$| $$__| $$| $$$\\| $$| $$__| $$| $$ __\\$$| $$__    | $$__| $$                ');
+    console.log('| $$$$\\  $$$$| $$    $$| $$$$\\ $$| $$    $$| $$|    \\| $$  \\   | $$    $$                ');
+    console.log('| $$\\$$ $$ $$| $$$$$$$$| $$\\$$ $$| $$$$$$$$| $$ \\$$$$| $$$$$   | $$$$$$$\\                ');
+    console.log('| $$ \\$$$| $$| $$  | $$| $$ \\$$$$| $$  | $$| $$__| $$| $$_____ | $$  | $$                ');
+    console.log('| $$  \\$ | $$| $$  | $$| $$  \\$$$| $$  | $$ \\$$    $$| $$     \\| $$  | $$                ');
+    console.log(' \\$$      \\$$ \\$$   \\$$ \\$$   \\$$ \\$$   \\$$  \\$$$$$$  \\$$$$$$$$ \\$$   \\$$                ');
+    console.log('\n');
+    console.log('\n');
+    console.log('\n');
     
 }
 
