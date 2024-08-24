@@ -5,8 +5,10 @@ import { pool, connectToDb } from './connection.js';
 
 await connectToDb();
 
+//display art before starting
 art();
 
+//main function to display user options
 function startup(): void{
     
   inquirer.prompt({
@@ -51,9 +53,33 @@ function startup(): void{
   })
 };
 
+//initial function call
 startup();
 
-function addEmployee(): void{
+// Refactored addEmployee function
+async function addEmployee(): Promise<void>{
+    //selection confirmation
+    console.log(`addEmployee selected`);
+
+    //fetch table arrays before adding
+    const employeeArray = await fetchEmployees();
+    const departmentArray = await fetchDepartments();
+    const roleArray = await fetchRoles();
+    const managerArray = await fetchManagers();
+    // wouldn't display manager name without this
+    const managerNameArray = managerArray.map((manager: { value: number; first_name: string; last_name: string; }) => ({
+        value: manager.value,
+        name: `${manager.first_name} ${manager.last_name}`}));
+
+    //display current employees for user reference
+    console.log('Here is a list of current employees for reference:');
+    //change to just display first and last name
+    const employeeNameArray = employeeArray.map((employee: { value: number; first_name: string; last_name: string; }) => `${employee.first_name} ${employee.last_name}`);
+    console.log(employeeNameArray);
+
+    
+
+    // user input
     inquirer.prompt([
         { 
             type: 'input', 
@@ -64,23 +90,27 @@ function addEmployee(): void{
             name: 'lastName',
             message: 'What is the employee\'s last name?'
         }, {
-            type: 'input',
+            type: 'list',
             name: 'department',
-            message: 'What is the employee\'s department?'
+            message: 'What is the employee\'s department?',
+            choices: departmentArray
         }, {
-            type: 'input',
+            type: 'list',
             name: 'role',
-            message: 'What is the employee\'s role?'
+            message: 'What is the employee\'s role?',
+            choices: roleArray
         }, {
-            type: 'input',
+            type: 'list',
             name: 'manager',
-            message: 'Who is the employee\'s manager?'
+            message: 'Who is the employee\'s manager?',
+            choices: managerNameArray //wanted to display manager name instead of id
         }])
+        //handle user input and store in database
         .then((answers) => {
-            console.log(`addEmployee selected`);
-            // select statement to get employee
+            
+            // select statement to get employee table
             const sql = 'INSERT INTO employees (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4) RETURNING *';
-            const params = [answers.firstName, answers.lastName, answers.role_id, answers.manager];
+            const params = [answers.firstName, answers.lastName, answers.role, answers.manager];
             //result??
             pool.query(sql, params, (err: Error, result: QueryResult) => {
                 if (err) {
@@ -89,31 +119,53 @@ function addEmployee(): void{
                 } 
                 else if (result) {
                 console.log(result.rows); //=?
-                console.log(`${answers.firstName} ${answers.lastName} added`);
+                //fancy way of confirming the selection back to the user
+                const role = roleArray.filter((role: { value: number; }) => role.value === answers.role)[0];
+                const manager = managerArray.filter((manager: { value: number; }) => manager.value === answers.manager)[0];
+                console.log(`${answers.firstName} ${answers.lastName} added with role ${role.name} and manager ${manager.first_name} ${manager.last_name}`);
                 startup();
                 }
             })
         })
 }
 
-function addRole(): void{
-    inquirer.prompt(
-        {
-            type: 'input',
-            name: 'newRole',
-            message: 'What is the name of the role you would like to add? Note: Any role can be added to any department.'
-        })
+async function addRole(): Promise<void>{
+    //fetch and display current roles before adding
+    const roleArray = await fetchRoles();
+    console.log('Here is a list of current roles for reference:');
+    console.log(roleArray);
+    // array creation for user department selection
+    const departmentArray = await fetchDepartments();
+
+    // user input for new role
+    inquirer.prompt([
+            {
+                type: 'list',
+                name: 'department',
+                message: 'What department does this role belong to?',
+                choices: departmentArray
+            },
+            {
+                type: 'input',
+                name: 'newRole',
+                message: 'What is the name of the role you would like to add?'
+            },
+            {
+                type: 'input',
+                name: 'salary',
+                message: 'What is the salary of the role you would like to add?'
+            }])
         .then((answers) => {
             console.log(`addRole selected`);
-            const sql = 'INSERT INTO role (title) VALUES ($1)';
-            const params = [answers.newRole];
+            const sql = 'INSERT INTO roles (department_id, title, salary)  VALUES ($1, $2, $3) RETURNING *';
+            const params = [answers.department, answers.newRole, answers.salary];
 
             pool.query(sql, params, (err: Error, result: QueryResult) => {
                 if (err) {
                     console.log(err);
                     return;
                 } else {
-                console.log(`${answers.newRole}added`);
+                console.log(`${answers.newRole}added with a salary of ${answers.salary}`);
                 console.log(result.rows);
                 startup();
                 }
@@ -123,26 +175,13 @@ function addRole(): void{
 
 async function addDepartment(): Promise<void>{
     //fetch and display current departments before adding
-    const fetchDepartments = await pool.query('SELECT * FROM departments');
-    console.log(fetchDepartments.rows);
+    const departmentArray = await fetchDepartments();
+    console.log('Here is a list of current departments for reference:');
+    console.log(departmentArray);
+
     //change to array of objects
     // key value pairs of name and value
     // map > new key value pairs 
-
-    // pool.query(fetchDepartments, '',(err: Error, result: QueryResult) => {
-    //     if (err) {
-    //         console.log(err);
-    //         return;
-    //     } else {
-    //     const departments = result.rows;
-    //     const departmentNames = departments.map((department: { name: string; }) => department.name);
-    //     console.log('Here is a list of current departments for reference:');
-    //     console.log(departmentNames);
-    //     }
-    // })
-
-    
-    
 
     inquirer.prompt({
         type: 'input',
@@ -151,7 +190,7 @@ async function addDepartment(): Promise<void>{
     })
     .then((answers) => {
         console.log(`addDepartment selected`);
-        const sql = 'INSERT INTO department (name) VALUES ($1) RETURNING *';
+        const sql = 'INSERT INTO departments (name) VALUES ($1) RETURNING *';
         const params = [answers.newDepartment];
 
         pool.query(sql, params, (err: Error, result: QueryResult) => {
@@ -168,22 +207,28 @@ async function addDepartment(): Promise<void>{
 }
 
 function updateEmployee(): void {
+    //fetch current employees and roles before updating
+    const employeeArray = fetchEmployees();
+    const roleArray = fetchRoles();
+
     inquirer.prompt([
         {
-            type: 'input',
-            name: 'employeeId',
-            message: 'What is the employee\'s ID?'
+            type: 'list',
+            name: 'employee',
+            message: 'What employee would you like to update?',
+            choices: employeeArray
         },
         {
-            type: 'input',
-            name: 'newRoleId',
-            message: 'What is the new role ID? ' // change to array of rolls
-        }
+            type: 'list',
+            name: 'newRole',
+            message: 'What is the new role ID? ', // change to array of rolls
+            choices: roleArray
+        },
     ])
     .then((answers) => {
         console.log(`updateEmployee selected`);
-        const sql = 'UPDATE employee SET role_id = $1 WHERE id = $2';
-        const params = [answers.newRoleId, answers.employeeId];
+        const sql = 'UPDATE employees SET role_id = $1 WHERE id = $2';
+        const params = [answers.newRole, answers.employeeId];
         
 
         pool.query(sql, params, (err: Error, result: QueryResult) => {
@@ -191,7 +236,7 @@ function updateEmployee(): void {
                 console.log(err);
                 return;
             } else {
-            console.log(`${answers.employeeId} updated`);
+            console.log(`${answers.employee} updated to ${answers.newRole}`);
             console.log(result.rows);
             startup();
             }
@@ -199,6 +244,7 @@ function updateEmployee(): void {
     })
 }
 
+//main function to display employees
 function viewEmployees(): void {
 
     console.log('viewEmployees selected');
@@ -215,6 +261,7 @@ function viewEmployees(): void {
     })
 }
 
+//main function to display roles
 function viewRoles(): void {
     console.log('viewRoles selected');
     const sql = 'SELECT * FROM roles';
@@ -230,30 +277,69 @@ function viewRoles(): void {
     })
 }
 
-//main function to console.log departments
-//refactored to return an array of departments for use in other functions
+//main function to display departments
 function viewDepartments(): void {
     console.log('viewDepartments selected');
     const sql = 'SELECT * FROM departments';
     pool.query(sql, (err: Error, result: QueryResult) => {
         if (err) {
             console.log(err);
-            // return [''];
+            return;
         } else {
-            console.log(result.rows);
-            // const departments = result.rows;
-            // const departmentNames = departments.map((department: { name: string; }) => department.name);
-            // console.log(`viewAllDepartment names: $departmentNames`);
-            startup();
-            // return departmentNames;
-            
+        console.log(result.rows);
+        startup();
         }
     })
 }
 
+//exit application
 function exit(): void {
     console.log('Thanks for using the employee tracker!');
     pool.end();
+    process.exit(); // Add this line to exit the terminal
+}
+
+// ------------ refactored fetch functions for resuability -----------------
+// Function to fetch employees and return an array with the same structure as other fetch functions
+async function fetchEmployees(): Promise<{ value: number; first_name: string; last_name: string; role_id: number; manager_id: number; }[]> {
+    const fetchEmployees = await pool.query('SELECT * FROM employees');
+    const employees = fetchEmployees.rows;
+    const employeeArray = employees.map((employee: { id: number; first_name: string; last_name: string; role_id: number; manager_id: number; }) => ({
+        value: employee.id, //change id to value for inquirer
+        first_name: employee.first_name,
+        last_name: employee.last_name,
+        role_id: employee.role_id,
+        manager_id: employee.manager_id
+    }));
+    return employeeArray;
+}
+
+// Function to fetch departments
+async function fetchDepartments(): Promise<{ value: number; name: string; }[]> {
+    const fetchDepartments = await pool.query('SELECT * FROM departments');
+    const departments = fetchDepartments.rows;
+    const departmentArray = departments.map((department: { id: number; name: string; }) => ({ value: department.id, name: department.name })); //change id to value for inquirer
+    return departmentArray;
+}
+
+// Function to fetch roles
+async function fetchRoles(): Promise<{ value: number; name: string; }[]> {
+    const fetchRoles = await pool.query('SELECT * FROM roles');
+    const roles = fetchRoles.rows;
+    const roleArray = roles.map((role: { id: number; title: string; }) => ({ value: role.id, name: role.title })); //change id to value for inquirer
+    return roleArray;
+}
+
+// Function to fetch managers
+async function fetchManagers(): Promise<{ value: number; first_name: string; last_name:string }[]> {
+    const fetchManagers = await pool.query('SELECT * FROM employees');
+    const managers = fetchManagers.rows;
+    const managerArray = managers.map((manager: { id: number; first_name: string; last_name: string; }) => ({ 
+        value: manager.id, 
+        first_name: manager.first_name,
+        last_name: manager.last_name
+    })); //change id to value for inquirer
+    return managerArray;
 }
 
 function art(): void {
