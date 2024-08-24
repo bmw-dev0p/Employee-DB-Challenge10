@@ -4,7 +4,7 @@ VALUES
     ('Security'),
     ('Sales'),
     ('Engineering'),
-    ('Management'),
+    ('Human Resources'),
     ('Warehouse');
 
 INSERT INTO roles ( department_id, title, salary)
@@ -15,15 +15,17 @@ VALUES
     -- sales 
     (2, 'Intern', 0),
     (2, 'Entry-Level', 50000),
-    (2, 'Full-Time', 75000)
+    (2, 'Full-Time', 75000),
+    (2, 'Manager', 100000),
     -- engineering
     (3, 'Intern', 0),
     (3, 'Entry-Level', 50000),
-    (3, 'Full-Time', 75000)
-    -- management
-    (4, 'Sales Manager', 50000),
-    (4, 'Engineering Manager', 75000),
-    (4, 'General Manager', 100000),
+    (3, 'Full-Time', 75000),
+    (3, 'Manager', 100000),
+    -- hr
+    (4, 'Secretary', 50000),
+    (4, 'Representative', 75000),
+    (4, 'Cheif Wellness', 100000),
     -- warehouse
     (5, 'Full-Time', 75000);
     
