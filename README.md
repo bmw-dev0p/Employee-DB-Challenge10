@@ -23,16 +23,13 @@
   <br/>Step 8: After package installation, run the command ```npm run start```
   <br/>Step 9: Follow the console prompts to interact with the database 
   ## Usage:
-  Starting up program 
-  <br/>![startup](?raw=true)
-  <br/>Detailed vehicle creation
-  <br/>![startup](?raw=true)
-  <br/>Vehicle actions
-  <br/>![startup](?raw=true)
-  <br/>Vehicle driving example
-  <br/>![startup](?raw=true)
-  <br/>Truck special action - Towing example
-  <br/>![startup](?raw=true)
+  Application landing page + navigation
+  <br/>![startup](https://github.com/bmw-dev0p/Employee-DB-Challenge10/blob/feature/v5/assets/1.jpg?raw=true)
+  <br/>View all employees function (view deparments and roles will look similar)
+  <br/>![viewAll](https://github.com/bmw-dev0p/Employee-DB-Challenge10/blob/feature/v5/assets/2.jpg?raw=true)
+  <br/>Add employee function (Add departments and roles will look similar)
+  <br/>![addEmployee](https://github.com/bmw-dev0p/Employee-DB-Challenge10/blob/feature/v5/assets/3.jpg?raw=true)
+
   ## Features:
   ### Coding Language(s): 
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
@@ -49,7 +46,7 @@
 - Example data and tables provided
 - Functionality to add and modify employees, roles, and departments
 - Store the database long term, doesn't reset after exiting application
-- 
+- Console data is formatted into tables automatically
 ## License / Badges:
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) 
     
