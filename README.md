@@ -12,23 +12,24 @@
   For a video guide of this project and how it works, you can watch the video found here:
   https://vimeo.com/
   <br/>The following steps will allow you to run the code locally:
+  <br/>Setup: This program requires PostgreSQL. You can find a guide to installation here: https://coding-boot-camp.github.io/full-stack/postgresql/postgresql-installation-guide
   <br/>Step 1: Navigate to : https://github.com/bmw-dev0p/Employee-DB-Challenge10
   <br/>Step 2: Clone the repo to download it onto your local computer
   <br/>Step 3: Open download in the IDE of your choosing, navigate to the "src" folder structure, right click "src" folder, run in integrated terminal
-  <br/>Step 4: Run the command ```npm install``` to install the dependent packages
-  <br/>Step 5: After package installation, run the command ```npm run start```
-  <br/>Step 6: Follow the console prompts to interact with the database 
+  <br/>Step 4: Set up the Postgres shell by running the command ```psql -U postgres``` - enter credentials
+  <br/>Step 5: Connect the database to the shell by running the command ```\i schema.sql``` and ```\i seeds.sql```
+  <br/>Step 6: Exit postgres ```\q``` to return to CLI
+  <br/>Step 7: Run the command ```npm install``` to install the dependent packages
+  <br/>Step 8: After package installation, run the command ```npm run start```
+  <br/>Step 9: Follow the console prompts to interact with the database 
   ## Usage:
-  Starting up program 
-  <br/>![startup](?raw=true)
-  <br/>Detailed vehicle creation
-  <br/>![startup](?raw=true)
-  <br/>Vehicle actions
-  <br/>![startup](?raw=true)
-  <br/>Vehicle driving example
-  <br/>![startup](?raw=true)
-  <br/>Truck special action - Towing example
-  <br/>![startup](?raw=true)
+  Application landing page + navigation
+  <br/>![startup](https://github.com/bmw-dev0p/Employee-DB-Challenge10/blob/feature/v5/assets/1.jpg?raw=true)
+  <br/>View all employees function (view deparments and roles will look similar)
+  <br/>![viewAll](https://github.com/bmw-dev0p/Employee-DB-Challenge10/blob/feature/v5/assets/2.jpg?raw=true)
+  <br/>Add employee function (Add departments and roles will look similar)
+  <br/>![addEmployee](https://github.com/bmw-dev0p/Employee-DB-Challenge10/blob/feature/v5/assets/3.jpg?raw=true)
+
   ## Features:
   ### Coding Language(s): 
 ![JavaScript](https://img.shields.io/badge/javascript-%23323330.svg?style=for-the-badge&logo=javascript&logoColor=%23F7DF1E)
@@ -44,8 +45,8 @@
 - User interaction from keyboard input
 - Example data and tables provided
 - Functionality to add and modify employees, roles, and departments
-- 
-- 
+- Store the database long term, doesn't reset after exiting application
+- Console data is formatted into tables automatically
 ## License / Badges:
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT) 
     

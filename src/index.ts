@@ -1,14 +1,16 @@
 import inquirer from "inquirer";
 import { QueryResult } from 'pg';
 import { pool, connectToDb } from './connection.js';
-// import cTable from 'console.table';
+//different table print package
+import { printTable } from 'console-table-printer';
+
 
 await connectToDb();
 
 //display art before starting
 art();
 
-//main function to display user options
+//main function to navigate through the application
 function startup(): void{
     
   inquirer.prompt({
@@ -58,6 +60,7 @@ startup();
 
 // Refactored addEmployee function
 async function addEmployee(): Promise<void>{
+
     //selection confirmation
     console.log(`addEmployee selected`);
 
@@ -73,11 +76,9 @@ async function addEmployee(): Promise<void>{
 
     //display current employees for user reference
     console.log('Here is a list of current employees for reference:');
-    //change to just display first and last name
+    //change employee to show only display first and last name
     const employeeNameArray = employeeArray.map((employee: { value: number; first_name: string; last_name: string; }) => `${employee.first_name} ${employee.last_name}`);
     console.log(employeeNameArray);
-
-    
 
     // user input
     inquirer.prompt([
@@ -118,7 +119,7 @@ async function addEmployee(): Promise<void>{
                     return;
                 } 
                 else if (result) {
-                console.log(result.rows); //=?
+                printTable(result.rows); //=?
                 //fancy way of confirming the selection back to the user
                 const role = roleArray.filter((role: { value: number; }) => role.value === answers.role)[0];
                 const manager = managerArray.filter((manager: { value: number; }) => manager.value === answers.manager)[0];
@@ -130,12 +131,13 @@ async function addEmployee(): Promise<void>{
 }
 
 async function addRole(): Promise<void>{
-    //fetch and display current roles before adding
+
+    //fetch current roles, departments before adding
     const roleArray = await fetchRoles();
-    console.log('Here is a list of current roles for reference:');
-    console.log(roleArray);
-    // array creation for user department selection
     const departmentArray = await fetchDepartments();
+    // user display
+    console.log('Here is a list of current roles for reference:');
+    console.log(roleArray);    
 
     // user input for new role
     inquirer.prompt([
@@ -166,7 +168,7 @@ async function addRole(): Promise<void>{
                     return;
                 } else {
                 console.log(`${answers.newRole}added with a salary of ${answers.salary}`);
-                console.log(result.rows);
+                printTable(result.rows);
                 startup();
                 }
             })
@@ -178,10 +180,6 @@ async function addDepartment(): Promise<void>{
     const departmentArray = await fetchDepartments();
     console.log('Here is a list of current departments for reference:');
     console.log(departmentArray);
-
-    //change to array of objects
-    // key value pairs of name and value
-    // map > new key value pairs 
 
     inquirer.prompt({
         type: 'input',
@@ -199,7 +197,7 @@ async function addDepartment(): Promise<void>{
                 return;
             } else {
             console.log(`${answers.newDepartment} added`);
-            console.log(result.rows);
+            printTable(result.rows);
             startup();
             }
         })
@@ -221,13 +219,13 @@ function updateEmployee(): void {
         {
             type: 'list',
             name: 'newRole',
-            message: 'What is the new role ID? ', // change to array of rolls
+            message: 'What is the new role ID? ', 
             choices: roleArray
         },
     ])
     .then((answers) => {
         console.log(`updateEmployee selected`);
-        const sql = 'UPDATE employees SET role_id = $1 WHERE id = $2';
+        const sql = 'UPDATE employees SET role_id = $1 WHERE id = $2 RETURNING *';
         const params = [answers.newRole, answers.employeeId];
         
 
@@ -237,7 +235,7 @@ function updateEmployee(): void {
                 return;
             } else {
             console.log(`${answers.employee} updated to ${answers.newRole}`);
-            console.log(result.rows);
+            printTable(result.rows);
             startup();
             }
         })
@@ -255,7 +253,7 @@ function viewEmployees(): void {
             console.log(err);
             return;
         } else {
-        console.log(result.rows);
+        printTable(result.rows);
         startup();
         }
     })
@@ -271,7 +269,7 @@ function viewRoles(): void {
             console.log(err);
             return;
         } else {
-        console.log(result.rows);
+        printTable(result.rows);
         startup();
         }
     })
@@ -286,7 +284,7 @@ function viewDepartments(): void {
             console.log(err);
             return;
         } else {
-        console.log(result.rows);
+        printTable(result.rows);
         startup();
         }
     })
