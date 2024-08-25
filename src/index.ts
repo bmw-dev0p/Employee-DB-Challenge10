@@ -17,7 +17,7 @@ function startup(): void{
     type: 'list',
     name: 'startup',
     message: 'What would you like to do?',
-    choices: ['View all employees', 'Add employee', 'Add role', 'Add department', 'Update employee role', 'View all roles', 'View all departments', 'Exit']
+    choices: ['View all employees', 'View all roles', 'View all departments', 'Add employee', 'Add role', 'Add department', 'Update employee role',  'Exit']
   })
   .then(function(answers){
     if (answers.startup === 'Add employee'){
@@ -60,9 +60,6 @@ startup();
 
 // Refactored addEmployee function
 async function addEmployee(): Promise<void>{
-
-    //selection confirmation
-    console.log(`addEmployee selected`);
 
     //fetch table arrays before adding
     const employeeArray = await fetchEmployees();
@@ -137,7 +134,8 @@ async function addRole(): Promise<void>{
     const departmentArray = await fetchDepartments();
     // user display
     console.log('Here is a list of current roles for reference:');
-    console.log(roleArray);    
+    const roleNameArray = roleArray.map((role: { value: number; name: string; }) => role.name);
+    console.log(roleNameArray);    
 
     // user input for new role
     inquirer.prompt([
@@ -158,7 +156,7 @@ async function addRole(): Promise<void>{
                 message: 'What is the salary of the role you would like to add?'
             }])
         .then((answers) => {
-            console.log(`addRole selected`);
+            // console.log(`addRole selected`);
             const sql = 'INSERT INTO roles (department_id, title, salary)  VALUES ($1, $2, $3) RETURNING *';
             const params = [answers.department, answers.newRole, answers.salary];
 
@@ -176,10 +174,12 @@ async function addRole(): Promise<void>{
 }
 
 async function addDepartment(): Promise<void>{
+
     //fetch and display current departments before adding
     const departmentArray = await fetchDepartments();
+    const departmentNameArray = departmentArray.map((department: { value: number; name: string; }) => department.name);
     console.log('Here is a list of current departments for reference:');
-    console.log(departmentArray);
+    console.log(departmentNameArray);
 
     inquirer.prompt({
         type: 'input',
@@ -187,7 +187,7 @@ async function addDepartment(): Promise<void>{
         message: 'What is the name of the department you would like to add?'
     })
     .then((answers) => {
-        console.log(`addDepartment selected`);
+        // console.log(`addDepartment selected`);
         const sql = 'INSERT INTO departments (name) VALUES ($1) RETURNING *';
         const params = [answers.newDepartment];
 
@@ -204,17 +204,20 @@ async function addDepartment(): Promise<void>{
     })
 }
 
-function updateEmployee(): void {
+async function updateEmployee(): Promise<void> {
     //fetch current employees and roles before updating
-    const employeeArray = fetchEmployees();
-    const roleArray = fetchRoles();
+    const employeeArray = await fetchEmployees();
+    //change employee to show only display first and last name
+    const employeeNameArray = employeeArray.map((employee: { value: number; first_name: string; last_name: string; }) => `${employee.first_name} ${employee.last_name}`);
+
+    const roleArray = await fetchRoles();
 
     inquirer.prompt([
         {
             type: 'list',
             name: 'employee',
             message: 'What employee would you like to update?',
-            choices: employeeArray
+            choices: employeeNameArray
         },
         {
             type: 'list',
@@ -224,7 +227,7 @@ function updateEmployee(): void {
         },
     ])
     .then((answers) => {
-        console.log(`updateEmployee selected`);
+        // console.log(`updateEmployee selected`);
         const sql = 'UPDATE employees SET role_id = $1 WHERE id = $2 RETURNING *';
         const params = [answers.newRole, answers.employeeId];
         
@@ -234,8 +237,16 @@ function updateEmployee(): void {
                 console.log(err);
                 return;
             } else {
-            console.log(`${answers.employee} updated to ${answers.newRole}`);
-            printTable(result.rows);
+                //fancy way of confirming the selection back to the user
+                // needed if statement because there is a chance they are reassigned the same role
+            const updatedRole = roleArray.find((role) => role.value === answers.newRole);
+            if (updatedRole) {
+              console.log(`${answers.employee} updated to ${updatedRole.name}`);
+            } else {
+              console.log(`${answers.employee} updated.`);
+            }
+            console.log(result.rows); // currently prints empty bracket - bc "update" doesn't return anything
+            // printTable(result.rows); couldn't get this to work - but have confirmation message already
             startup();
             }
         })
